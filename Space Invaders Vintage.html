@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Space Invaders</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="Space Invaders Vintage.css">
+</head>
+
+<body>
+    <button class="insertCoin" id="startButton" onclick="startGame()">&lt;INSERT COIN&gt;</button>
+    <div id="container">
+        <div id="gameContainer">
+            <div id="headerContainer">
+                <p>SPACE INVADERS</p>
+            </div>
+            <button class="gameOver" id="gameOverButton" onclick="gameOver()">
+                &lt;GAME OVER&gt;
+            </button>
+            <div id="cpuContainer"></div>
+            <div id="shipContainer">
+                <img id="ship" src="./Immagini/SpaceShip.png" alt="Space Ship">
+            </div>
+        </div>
+    </div>
+    <script src="Space Invaders Vintage.js"></script>
+
+
+    <script type="text/html" id="alien1_template">
+        <img class="aliens" src="./Immagini/Alien1.png">
+    </script>
+    <script type="text/html" id="alien2_template">
+        <img class="aliens" src="./Immagini/Alien2.png">
+    </script>
+    <script type="text/html" id="alien3_template">
+        <img class="aliens" src="./Immagini/Alien3.png">
+    </script>
+    <script type="text/html" id="alien4_template">
+        <img class="aliens" src="./Immagini/Alien4.png">
+    </script>
+</body>
+
+</html>
