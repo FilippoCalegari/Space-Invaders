@@ -36,8 +36,10 @@ var cpuSideDirection = "R"; // oppure L
 var cpuSideMovementsNumber = 0;
 // Numero di spostamenti verticali effettuati cpu
 var cpuVerticalMovementsNumber = 0;
-// Creiamo il proiettile
-var bullet;
+// Timout intervallo velocità proiettile
+var bulletSpeed = 2;
+// Indice del proiettile
+var bulletIndex = 0;
 //#endregion
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -70,8 +72,10 @@ function startGame() {
         // Avvia intervallo CPU
         initCPUMovement();
 
+        // Inizializza altrimenti movimenti e azioni
         shoot();
         movement();
+        initBulletInterval();
     });
 }
 
@@ -122,7 +126,7 @@ function renderAliensGrid() {
             div.setAttribute("cpu_empty_row", "");
 
         // Inserisci riga
-        document.getElementById("cpuContainer").appendChild(div);
+        document.getElementById("cpuShipsContainer").appendChild(div);
 
         // Controlla se è una riga contenente gli alieni
         if (iRow < 4) {
@@ -180,7 +184,7 @@ function initCPUMovement() {
             cpuSideMovementsNumber = 0;
 
             // Prendiamo padre delle righe
-            var rowsContainer = document.getElementById("cpuContainer");
+            var rowsContainer = document.getElementById("cpuShipsContainer");
 
             // Prendiamo i figli del container
             var containerChildren = rowsContainer.children;
@@ -218,6 +222,11 @@ function initCPUMovement() {
         }
 
     }, cpuMovementTimer);
+}
+function removeCPUEmptyRows() {
+
+    
+
 }
 //#endregion
 
@@ -277,55 +286,119 @@ function shoot() {
         // Solo barra spaziatrice consentita
         if (event.keyCode != 32) return;
 
-        // Creiamo proiettile
-        bullet = document.createElement("div");
-
-        bullet.className = "bullet";
-        bullet.style.left = `${currentPositionX - shipMargin}px`;
-
-        timer = setInterval(moveBullet(), 2);
-
-        // Inserisci riga
-        document.getElementById("cpuContainer").appendChild(bullet);
+        renderBullet();
     });
 }
-function moveBullet() {
-    bullet.style.bottom = parseInt(bullet.style.bottom) + 1 + 'px';
+//#endregion
 
-    if (parseInt(bullet.style.bottom) >= document.getElementById("cpuContainer"))
-        bullet.style.bottom = 0;
+//#region Bullet
+function renderBullet() {
+    // Creiamo proiettile
+    bullet = document.createElement("div");
+
+    // Aggiungiamo classe
+    bullet.className = "bullet";
+
+    // Centriamo sopra la posizione corrente della nave
+    bullet.style.left = `${currentPositionX - shipMargin}px`;
+    bullet.style.bottom = 0;
+
+    // Aggiungiamo l'attributo con l'indice
+    bullet.setAttribute("bullet-index", bulletIndex);
+
+    // Inserisci riga
+    document.getElementById("cpuContainer").appendChild(bullet);
+
+    // Incrementiamo l'indice
+    bulletIndex++;
 }
+function initBulletInterval() {
 
-// function shoot() {
-//     const speed = 5;
-//     const delay = 7;
-//     const damage = 1;
-//     var timers = {};
-//     var interval = 10; // Tempo minimo tra le pressioni dei tasti in millisecondi
+    setInterval(() => {
 
-//     document.addEventListener("keydown", function (event) {
-//         // Controlla se l'evento di movimento è già in esecuzione per questo tasto
-//         if (timers[event.keyCode]) return;
+        // Prendiamo tutti i proiettili
+        var bullets = document.querySelectorAll("[bullet-index]");
 
-//         // Avvia un intervallo di tempo prima di eseguire l'azione di movimento
-//         timers[event.keyCode] = setInterval(function () {
-//             // Controlla quale tasto è stato premuto
-//             switch (event.keyCode) {
-//                 case 32: // Spazio
-//                     div.style.top = parseInt(div.style.top) - 1 + 'px';
+        // Controlliamo che ci siano proiettili
+        if (bullets.length == 0)
+            return;
 
-//             }
+        // Muovi proiettile
+        moveBullet(bullets);
 
-//             // Imposta la nuova posizione dell'immagine
-//             ship.style.left = currentPositionX + "px";
-//         }, interval);
+        // Controlla collisione con alieno
+        checkBulletCollision(bullets);
 
-//         // Rimuove l'intervallo di tempo se il tasto viene rilasciato
-//         document.addEventListener("keyup", function (event) {
-//             clearInterval(timers[event.keyCode]);
-//             timers[event.keyCode] = null;
-//         });
-//     });
+    }, bulletSpeed);
+}
+function moveBullet(bullets) {
 
-// }
+    // Muoviamo i proiettili
+    bullets.forEach(bullet => {
+
+        bullet.style.bottom = `${parseInt(bullet.style.bottom) + 1}px`;
+
+        // Se arrivato in cima, rimuoviamo
+        if (parseInt(bullet.style.bottom) >= document.getElementById("cpuContainer").offsetHeight) {
+
+            // Prendiamo indice
+            var i = bullet.getAttribute("bullet-index");
+
+            // Rimuoviamo elemento
+            document.querySelector(`[bullet-index="${i}"]`).remove();
+        }
+
+    });
+}
+function checkBulletCollision(bullets) {
+
+    // Prendiamo gli alieni
+    var aliens = document.querySelectorAll("[alien]");
+
+    // Controlliamo tutti i proiettili
+    bullets.forEach(bullet => {
+
+        // Prendiamo le coordinate del proiettile
+        var coords_bullet = bullet.getBoundingClientRect();
+
+        aliens.forEach(alien => {
+
+            // Prendiamo l'immagine dell'alieno
+            var alien_img = alien.querySelector(".aliens");
+
+            // Controlliamo che l'alieno esista ancora
+            if(alien_img == null || alien_img == undefined)
+                return;
+            
+            // Prendiamo le coordinate dell'alieno
+            var coords_alien = alien_img.getBoundingClientRect();
+
+            // Prendiamo la larghezza dell'alieno
+            var width = alien_img.offsetWidth;
+
+            // Prendiamo l'altezza dell'alieno
+            var height = alien_img.offsetHeight;
+
+            // Controlliamo se collidono
+            if((coords_alien.x <= coords_bullet.x && (coords_alien.x + width) >= coords_bullet.x) && (coords_alien.y <= coords_bullet.y && (coords_alien.y + height) >= coords_bullet.y)) {
+
+                // Rimuovi proiettile
+                bullet.remove();
+
+                // Rimuoviamo l'attributo alien all'alieno
+                alien.removeAttribute("alien");
+
+                // Aggiungiamo l'attributo empty all'alieno
+                alien.setAttribute("empty", "");
+
+                // Rimuoviamo l'immagine dell'alieno
+                alien_img.remove();
+
+                // Rimuoviamo le righe vuota
+                removeCPUEmptyRows();
+            }
+        });
+    });
+
+}
 //#endregion
