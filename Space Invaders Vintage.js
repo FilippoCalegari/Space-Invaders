@@ -225,7 +225,7 @@ function initCPUMovement() {
 }
 function removeCPUEmptyRows() {
 
-    
+
 
 }
 //#endregion
@@ -367,9 +367,9 @@ function checkBulletCollision(bullets) {
             var alien_img = alien.querySelector(".aliens");
 
             // Controlliamo che l'alieno esista ancora
-            if(alien_img == null || alien_img == undefined)
+            if (alien_img == null || alien_img == undefined)
                 return;
-            
+
             // Prendiamo le coordinate dell'alieno
             var coords_alien = alien_img.getBoundingClientRect();
 
@@ -380,17 +380,21 @@ function checkBulletCollision(bullets) {
             var height = alien_img.offsetHeight;
 
             // Controlliamo se collidono
-            if((coords_alien.x <= coords_bullet.x && (coords_alien.x + width) >= coords_bullet.x) && (coords_alien.y <= coords_bullet.y && (coords_alien.y + height) >= coords_bullet.y)) {
+            if ((coords_alien.x <= coords_bullet.x && (coords_alien.x + width) >= coords_bullet.x) && (coords_alien.y <= coords_bullet.y && (coords_alien.y + height) >= coords_bullet.y)) {
 
                 // Rimuovi proiettile
                 bullet.remove();
 
-                // Rimuoviamo l'attributo alien all'alieno
+                // Rimuoviamo l'attributo alien all'alienos
                 alien.removeAttribute("alien");
 
                 // Aggiungiamo l'attributo empty all'alieno
                 alien.setAttribute("empty", "");
 
+                // setTimeout(function () {
+                //     alien_img = replacewith('Explosion.png');
+                // }, 1000);
+                
                 // Rimuoviamo l'immagine dell'alieno
                 alien_img.remove();
 
@@ -399,6 +403,5 @@ function checkBulletCollision(bullets) {
             }
         });
     });
-
 }
 //#endregion
