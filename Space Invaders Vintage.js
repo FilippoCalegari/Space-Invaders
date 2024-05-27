@@ -9,6 +9,7 @@
 //#region Properties
 var container = document.getElementById("container");
 var ship = document.getElementById("ship");
+// var points = document.getAttribute("p");
 // Dimensioni del contenitore
 var containerWidth = container.offsetWidth;
 // Dimensioni della nave
@@ -29,7 +30,7 @@ var nCols = 10;
 var cpuRowWidth = document.getElementById("cpuContainer").offsetWidth - shipMargin * 2;
 var cpuCellDimension = cpuRowWidth / nCols + 'px';
 // Timeout per spostamento cpu
-var cpuMovementTimer = 100;
+var cpuMovementTimer = 1000;
 // CPU spostamento interval
 var cpuMovementInterval;
 // Direzione movimento cpu
@@ -42,10 +43,14 @@ var cpuVerticalMovementsNumber = 0;
 var bulletSpeed = 2;
 // Indice del proiettile
 var bulletIndex = 0;
+// Ultimo sparo timestamp
+var bulletShotTimestamp = Date.now();
 // Variabile per game over
 var isGameOver = false;
 // Variabile per vittoria
 var isVictory = false;
+// Variabile che conta gli alieni distrutti
+var aliensKilled = 0;
 //#endregion
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -61,6 +66,9 @@ function startGame() {
     startButton.addEventListener("click", function () {
         // Nascondo il pulsante di avvio
         startButton.style.display = "none";
+
+        // Mostro il punteggio
+        document.getElementById("pointsContainer").style.display = "block";
 
         // Mostro il contenitore del gioco
         document.getElementById("ship").style.display = "block";
@@ -91,6 +99,11 @@ function startGame() {
 }
 
 function gameOver() {
+
+    // Controlliamo che non sia vittoria
+    if(isVictory == true)
+        return;
+
     isGameOver = true;
 
     // Bottone di game over
@@ -381,9 +394,16 @@ function shoot() {
 
     document.addEventListener("keydown", function (event) {
 
-        // Solo barra spaziatrice consentita e non quando è game over o vittoria
-        if (event.keyCode != 32 || isGameOver || isVictory) return;
+        // Prendi timestamp attuale
+        var now = Date.now();
 
+        // Solo barra spaziatrice consentita e non quando è game over o vittoria
+        if (event.keyCode != 32 || isGameOver || isVictory || (now - bulletShotTimestamp) < 300) return;
+
+        // Settiamo ultimo sparo
+        bulletShotTimestamp = now;
+
+        // Mostriamo proiettile
         renderBullet();
     });
 }
@@ -479,6 +499,9 @@ function checkBulletCollision(bullets) {
 
             // Controlliamo se collidono
             if ((coords_alien.x <= coords_bullet.x && (coords_alien.x + width) >= coords_bullet.x) && (coords_alien.y <= coords_bullet.y && (coords_alien.y + height) >= coords_bullet.y)) {
+
+                aliensKilled++;
+                document.getElementById("currentPoints").innerHTML = aliensKilled * 10;
 
                 // Rimuovi proiettile
                 bullet.remove();
