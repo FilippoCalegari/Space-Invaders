@@ -21,13 +21,15 @@ var moveShip = 1;
 var shipMargin = 20;
 // Numero righe
 var nRows = 10;
+// Numero righe con alieni
+var nRowsCPU = 4;
 // Numero colonne
 var nCols = 10;
 // Dimensioni celle per CPU
 var cpuRowWidth = document.getElementById("cpuContainer").offsetWidth - shipMargin * 2;
 var cpuCellDimension = cpuRowWidth / nCols + 'px';
 // Timeout per spostamento cpu
-var cpuMovementTimer = 1000;
+var cpuMovementTimer = 100;
 // CPU spostamento interval
 var cpuMovementInterval;
 // Direzione movimento cpu
@@ -40,6 +42,10 @@ var cpuVerticalMovementsNumber = 0;
 var bulletSpeed = 2;
 // Indice del proiettile
 var bulletIndex = 0;
+// Variabile per game over
+var isGameOver = false;
+// Variabile per vittoria
+var isVictory = false;
 //#endregion
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -55,8 +61,12 @@ function startGame() {
     startButton.addEventListener("click", function () {
         // Nascondo il pulsante di avvio
         startButton.style.display = "none";
+
         // Mostro il contenitore del gioco
         document.getElementById("ship").style.display = "block";
+
+        // Aggiungiamo classe alla ship container
+        document.getElementById("shipContainer").className = "shipContainerBorder";
 
         // Prendo gli alieni
         var aliens = document.querySelectorAll(".aliens");
@@ -66,6 +76,7 @@ function startGame() {
 
         // Dimensioni della nave
         halfShipWidth = document.getElementById("ship").offsetWidth / 2;
+
         // Variabile per tenere traccia della posizione attuale della nave
         currentPositionX = parseInt(containerWidth / 2);
 
@@ -80,30 +91,72 @@ function startGame() {
 }
 
 function gameOver() {
+    isGameOver = true;
+
     // Bottone di game over
     var gameOverButton = document.getElementById("gameOverButton");
+
     // Mostra pulsante game over
     gameOverButton.style.display = "block";
+
     // Nascondo la nave
     document.getElementById("ship").style.display = "none";
+
+    // Rimuoviamo la classe alla ship container
+    document.getElementById("shipContainer").className = "";
+
     // Nascondo gli alieni
     var aliens = document.querySelectorAll(".aliens");
     aliens.forEach(alien => {
         alien.style.display = "none";
     });
 
+    // Nascondo i proiettili
+    var bullets = document.querySelectorAll(".bullet");
+    bullets.forEach(bullet => {
+        bullet.style.display = "none";
+    });
+
     gameOverButton.addEventListener("click", function () {
         location.reload();
     });
+}
+function victory() {
+
+    // Controlliamo che non sia game over
+    if(isGameOver == true)
+        return;
+
+    // Vittoria
+    isVictory = true;
+
+    // Bottone di vittoria
+    var victoryButton = document.getElementById("victoryButton");
+
+    // Mostra pulsante vittoria
+    victoryButton.style.display = "block";
+
+    // Nascondo la nave
+    document.getElementById("ship").style.display = "none";
+
+    // Rimuoviamo la classe alla ship container
+    document.getElementById("shipContainer").className = "";
+
+    // Nascondo i proiettili
+    var bullets = document.querySelectorAll(".bullet");
+    bullets.forEach(bullet => {
+        bullet.style.display = "none";
+    });
+
+    victoryButton.addEventListener("click", function () {
+        location.reload();
+    });
+
 }
 //#endregion
 
 //#region CPU
 function renderCPU() {
-    renderAliensGrid();
-}
-function renderAliensGrid() {
-
     for (let iRow = 0; iRow < nRows; iRow++) {
         // Crea l'ID alla riga
         var rowId = `cpuRow${iRow + 1}`;
@@ -116,7 +169,7 @@ function renderAliensGrid() {
         div.style.height = cpuCellDimension;
 
         // Controlla se è una riga contenente gli alieni
-        if (iRow < 4) {
+        if (iRow < nRowsCPU) {
             // Assegno attributo
             div.setAttribute("cpu_row", "");
             div.id = rowId;
@@ -129,7 +182,7 @@ function renderAliensGrid() {
         document.getElementById("cpuShipsContainer").appendChild(div);
 
         // Controlla se è una riga contenente gli alieni
-        if (iRow < 4) {
+        if (iRow < nRowsCPU) {
 
             // Inserisce l'immagine in una variabile
             var alienImg = document.getElementById(`alien${iRow + 1}_template`).innerHTML.trim();
@@ -224,8 +277,53 @@ function initCPUMovement() {
     }, cpuMovementTimer);
 }
 function removeCPUEmptyRows() {
+    // Inizializziamo numero di righe vuote
+    var empty_rows_number = 0;
 
+    // Prendiamo tutte le righe contenenti gli alieni
+    for (let index = 0; index < nRowsCPU; index++) {
 
+        // Costruiamo l'ID della riga
+        var id = `cpuRow${index + 1}`;
+
+        // Controlliamo che la riga esista ancora
+        if (document.getElementById(id) == null) {
+
+            // Incrementiamo il numero di righe inesistenti
+            empty_rows_number++;
+            continue;
+        }
+
+        // Prendiamo il numero di figli con attributo alien
+        var number = document.querySelectorAll(`#${id} [alien]`).length;
+
+        // Se non ce ne sono
+        if (number == 0) {
+
+            // Svuotiamo la riga
+            document.getElementById(id).innerHTML = "";
+
+            // Togliamo l'attributo cpu_row
+            document.getElementById(id).removeAttribute("cpu_row");
+
+            // Aggiungiamo l'attributo cpu_empty_row
+            document.getElementById(id).setAttribute("cpu_empty_row", "");
+
+            // Rimuoviamo l'ID
+            document.getElementById(id).removeAttribute("id");
+
+            // Rimuoviamo 1 al movimento verticale per non considerare più la riga svuotata
+            cpuVerticalMovementsNumber--;
+
+            // Incrementiamo il numero di righe inesistenti
+            empty_rows_number++;
+        }
+
+    }
+
+    // Controlliamo se il numero di righe vuote è uguale al numero di righe contenti gli alieni > VITTORIA
+    if (nRowsCPU == empty_rows_number)
+        victory();
 
 }
 //#endregion
@@ -283,8 +381,8 @@ function shoot() {
 
     document.addEventListener("keydown", function (event) {
 
-        // Solo barra spaziatrice consentita
-        if (event.keyCode != 32) return;
+        // Solo barra spaziatrice consentita e non quando è game over o vittoria
+        if (event.keyCode != 32 || isGameOver || isVictory) return;
 
         renderBullet();
     });
@@ -370,7 +468,7 @@ function checkBulletCollision(bullets) {
             if (alien_img == null || alien_img == undefined)
                 return;
 
-            // Prendiamo le coordinate dell'alieno
+            // Prendiamo le coordinate dell'alienop
             var coords_alien = alien_img.getBoundingClientRect();
 
             // Prendiamo la larghezza dell'alieno
@@ -385,23 +483,25 @@ function checkBulletCollision(bullets) {
                 // Rimuovi proiettile
                 bullet.remove();
 
-                // Rimuoviamo l'attributo alien all'alienos
+                // Rimuoviamo l'attributo alien all'alieno
                 alien.removeAttribute("alien");
 
                 // Aggiungiamo l'attributo empty all'alieno
                 alien.setAttribute("empty", "");
 
-                // setTimeout(function () {
-                //     alien_img = replacewith('Explosion.png');
-                // }, 1000);
-                
-                // Rimuoviamo l'immagine dell'alieno
-                alien_img.remove();
+                // Sostituiamo l'immmagine dell'alieno con quella dell'esplosione
+                alien_img.setAttribute("src", "./Immagini/Explosion.png");
 
-                // Rimuoviamo le righe vuota
-                removeCPUEmptyRows();
+                setTimeout(() => {
+                    // Rimuoviamo l'immagine
+                    alien_img.remove();
+
+                    // Rimuoviamo le righe vuota
+                    removeCPUEmptyRows();
+                }, 500);
             }
         });
     });
+
 }
 //#endregion
