@@ -1,11 +1,3 @@
-// Percorso ShortCuts
-// C:\Users\Utente\AppData\Roaming\Code\User
-
-// TABELLA ORDINE
-// 2. Funzione Collisione Proiettile con alieno
-// 3. Ship che spara
-// 4. Alieni che sparano
-
 //#region Properties
 var container = document.getElementById("container");
 var ship = document.getElementById("ship");
@@ -88,7 +80,7 @@ function startGame() {
         // Variabile per tenere traccia della posizione attuale della nave
         currentPositionX = parseInt(containerWidth / 2);
 
-        // Avvia intervallo CPU
+        // Avvia movimento CPU
         initCPUMovement();
 
         // Inizializza altrimenti movimenti e azioni
@@ -97,7 +89,6 @@ function startGame() {
         initBulletInterval();
     });
 }
-
 function gameOver() {
 
     // Controlliamo che non sia vittoria
@@ -243,10 +234,10 @@ function initCPUMovement() {
                 gameOver();
             }
 
-            // Incrementiamo contatore
+            // Incrementiamo contatore verticale
             cpuVerticalMovementsNumber++;
 
-            // Svuoto il contatore
+            // Svuoto il contatore laterale
             cpuSideMovementsNumber = 0;
 
             // Prendiamo padre delle righe
@@ -255,7 +246,7 @@ function initCPUMovement() {
             // Prendiamo i figli del container
             var containerChildren = rowsContainer.children;
 
-            // Spostiamo l'ultimo elemento come primo
+            // Spostiamo l'ultimo elemento come primo (per scalare le righe verso il basso)
             rowsContainer.insertBefore(containerChildren[containerChildren.length - 1], rowsContainer.firstChild);
 
         }
@@ -268,7 +259,7 @@ function initCPUMovement() {
             for (let index = 0; index < rows.length; index++) {
                 const row = rows[index];
 
-                // Prendiamo i alieni della riga
+                // Prendiamo gli alieni della riga
                 var children = row.children;
 
                 // Controlliamo se R o L
@@ -304,6 +295,7 @@ function removeCPUEmptyRows() {
 
             // Incrementiamo il numero di righe inesistenti
             empty_rows_number++;
+            // Saltiamo al ciclo dopo
             continue;
         }
 
@@ -337,7 +329,6 @@ function removeCPUEmptyRows() {
     // Controlliamo se il numero di righe vuote è uguale al numero di righe contenti gli alieni > VITTORIA
     if (nRowsCPU == empty_rows_number)
         victory();
-
 }
 //#endregion
 
@@ -488,7 +479,7 @@ function checkBulletCollision(bullets) {
             if (alien_img == null || alien_img == undefined)
                 return;
 
-            // Prendiamo le coordinate dell'alienop
+            // Prendiamo le coordinate dell'alieno
             var coords_alien = alien_img.getBoundingClientRect();
 
             // Prendiamo la larghezza dell'alieno
@@ -500,6 +491,7 @@ function checkBulletCollision(bullets) {
             // Controlliamo se collidono
             if ((coords_alien.x <= coords_bullet.x && (coords_alien.x + width) >= coords_bullet.x) && (coords_alien.y <= coords_bullet.y && (coords_alien.y + height) >= coords_bullet.y)) {
 
+                // Aumentiamo il punteggio
                 aliensKilled++;
                 document.getElementById("currentPoints").innerHTML = aliensKilled * 10;
 
